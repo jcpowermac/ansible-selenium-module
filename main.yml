@@ -1,0 +1,21 @@
+---
+- name: Selenium Example 
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Download Red Hat Enterprise Linux DVD
+      selenium:
+        url: https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.1/x86_64/product-downloads
+        username: username
+        password: password
+        username_element_id: username
+        password_element_id: password
+        xpath: '//*[contains(@href,"rhel-server-7.1-x86_64-dvd.iso")]'
+
+    - name: Download private github repo
+      selenium:
+        url: https://github.com/csc/wiley/archive/v0.1.2.tar.gz 
+        username: username
+        password
+        username_element_id: login_field
+        password_element_id: password
