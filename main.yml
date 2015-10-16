@@ -16,6 +16,6 @@
       selenium:
         url: https://github.com/csc/wiley/archive/v0.1.2.tar.gz 
         username: username
-        password
+        password: password
         username_element_id: login_field
         password_element_id: password
