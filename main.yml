@@ -19,3 +19,4 @@
         password: password
         username_element_id: login_field
         password_element_id: password
+        download_directory: /home/user/download-here
