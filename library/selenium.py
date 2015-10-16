@@ -2,7 +2,7 @@
 
 DOCUMENTATION = '''
 ---
-module: selenium
+module: selenium_firefox_login
 short_description: foo
 description: foo
 version_added: null
@@ -12,7 +12,7 @@ requirements:
     - selenium
 options:
 notes:
-    -
+    - This module should run from a system that can access Hanlon directly. Either by using local_action, or using delegate_to.
 '''
 
 try:
@@ -37,14 +37,24 @@ def start_xvfb(module):
     except:
         module.fail_json(msg="xvfb broke")
 
+
 def start_selenium_driver(module):
-    driver = webdriver.Firefox()
+
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("browser.download.folderList", 2)
+    profile.set_preference("browser.download.manager.showWhenStarting", False)
+    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/x-gzip")
+    profile.set_preference("browser.helperApps.alwaysAsk.force", False);
+    profile.set_preference("browser.download.dir", module.params['download_directory'])
+
+    driver = webdriver.Firefox(profile)
     # Lets make sure that firefox is closed at the exit of the module
     atexit.register(driver.close)
 
     driver.implicitly_wait(30)
     driver.get(module.params['url'])
     module.params['driver'] = driver
+
 
 def login(module):
     driver = module.params['driver']
@@ -56,14 +66,13 @@ def login(module):
     password.submit()
 
 
-
 def find_xpath(module):
     driver = module.params['driver']
     for href_element in driver.find_elements_by_xpath(module.params['xpath']):
         href = href_element.get_attribute('href')
         if module.params['click_link']:
             href_element.click()
-            # Problem here is when is the download done?
+            # Problem here is when is the dowbload done?
         else:
             # Currently we are going to assume (might not be a good idea but for time)
             # that there is only one link with the xpath as provided
@@ -80,6 +89,7 @@ def create_argument_spec():
         username_element_id=dict(required=True, type='str'),
         password_element_id=dict(required=True, type='str'),
         xpath=dict(required=False, type='str'),
+        download_directory=dict(required=False, type='str'),
         click_link=dict(required=False, default=False, choices=BOOLEANS),
         time_to_download=dict(required=False, default=10, type='int'),
     )
@@ -98,9 +108,10 @@ def main():
     start_xvfb(module)
     start_selenium_driver(module)
     login(module)
+
     if module.params['xpath']:
         find_xpath(module)
-    else:
+    elif module.params['download_directory']:
         # Not an elegant solution but only download small files with this method.
         # Just going to sleep based on time_to_download
         time.sleep(module.params['time_to_download'])
